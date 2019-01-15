@@ -3,24 +3,48 @@
 
 ### Constant list ###
 FILE="debug.log"
-#LIMIT_SIZE=`expr 1024  \* 3` #3MB
-LIMIT_SIZE=`expr 1024 \* 1024 \* 3` #3MB
+LIMIT_SIZE=`expr 10  \* 3` #3MB
+#LIMIT_SIZE=`expr 1024 \* 1024 \* 3` #3MB
 GZIP_HOME=`which gzip`
 WP_CONTENT_HOME="."
 LOG_DIR="logs"
+MAX_LOG_NUM=3
+NUM_DIGITS=3
 DM="[DEBUG]"
 CF="[CONFIG]"
 
 
 
-### LOG OUTPUT SETTING###
+### LOG OUTPUT FUNCTION ###
 LOG_BUFFER=""
+### Append log for log output ###
 function append_log(){
 	LOG_BUFFER="$LOG_BUFFER$1\r\n"
 }
+### print log ###
 function print_log(){
 	echo $LOG_BUFFER
 }
+### change log version number ###
+function change_log_num(){
+	
+	for file in `ls -r ${LOG_DIR}/${FILE}*`
+		do
+			current_num=`printf %${NUM_DIGITS}g ${file##${LOG_DIR}/${FILE}.}`
+			if [ ${current_num} -ge ${MAX_LOG_NUM} ] ; then
+				append_log "${DM}rm -f ${file}"
+				rm -f $file
+				continue
+			fi
+
+			next_num=`expr $current_num + 1`
+			next_num=`printf %0${NUM_DIGITS}g ${next_num}`
+
+			append_log "${DM}mv ${file} ${LOG_DIR}/${FILE}.${next_num}"
+			mv ${file} ${LOG_DIR}/${FILE}.${next_num}
+		done
+}
+	
 
 
 
@@ -67,28 +91,25 @@ fi
 
 
 
-### Deciside version number ###
-current_file=`ls -r ${LOG_DIR}/${FILE}* | head -1`
-append_log "${DM}current_file=$current_file"
-current_num=`printf %3g ${current_file##${LOG_DIR}/${FILE}.}`
-
-next_num=`expr $current_num + 1`
-next_num=`printf %03g ${next_num}`
-append_log "${DM}CUR-NUM=$current_num,NEXT-NUM=$next_num"
-
-
+### Change Log File Version Number ###
+change_log_num
+	
+	
 
 ### Do gzip compression ###
-${GZIP_HOME} ${FILE} -c > ${LOG_DIR}/${FILE}.${next_num}
+VERSION_NUM=`printf %0${NUM_DIGITS}g 1`
+NEXT_FILE=${LOG_DIR}/${FILE}.${VERSION_NUM}
+
+${GZIP_HOME} ${FILE} -c > ${NEXT_FILE}
 cp /dev/null ${FILE}
 
 
 
 ### Check if compressed properly ###
-if [ -e ${LOG_DIR}/$FILE.$next_num ] ; then
-        append_log "${DM}Done gzip compression. New Create ${FILE}.${next_num}"
+if [ -e ${NEXT_FILE} ] ; then
+        append_log "${DM}Done gzip compression. New Create ${NEXT_FILE}"
 else
-        append_log "${DM}Fail gzip compression. Cannot create ${FILE}.${next_num}"
+        append_log "${DM}Fail gzip compression. Cannot create ${NEXT_FILE}"
 fi
 
 
