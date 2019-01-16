@@ -1,31 +1,37 @@
-#!/bin/sh
+#!/bin/bash
 
 
-### Constant list ###
+######## Constant list #########
 FILE="debug.log"
-LIMIT_SIZE=`expr 10  \* 3` #3MB
-#LIMIT_SIZE=`expr 1024 \* 1024 \* 3` #3MB
+LIMIT_SIZE=`expr 1024 \* 1024 \* 2` #2MB
 GZIP_HOME=`which gzip`
+# Wordpress(wp-content) Directory Home#
 WP_CONTENT_HOME="."
+# Log Directory Name#
 LOG_DIR="logs"
+# Max Log Number #
 MAX_LOG_NUM=3
+# The Number Of Digits #
 NUM_DIGITS=3
+# Debug Message #
 DM="[DEBUG]"
 CF="[CONFIG]"
+# newline code #
+NC="\n"
 
 
 
-### LOG OUTPUT FUNCTION ###
+######### LOG OUTPUT FUNCTION ##########
 LOG_BUFFER=""
-### Append log for log output ###
+# Append log for log output #
 function append_log(){
-	LOG_BUFFER="$LOG_BUFFER$1\r\n"
+	LOG_BUFFER="$LOG_BUFFER$1$NC"
 }
-### print log ###
+# print log #
 function print_log(){
-	echo $LOG_BUFFER
+	echo -e "$LOG_BUFFER"
 }
-### change log version number ###
+# change log version number #
 function change_log_num(){
 	
 	for file in `ls -r ${LOG_DIR}/${FILE}*`
@@ -52,7 +58,7 @@ cd ${WP_CONTENT_HOME}
 
 
 
-### LOG ###
+### Log Pring ###
 append_log "###### LOG GZIP PROCESS START ###### "
 append_log "[DATE]`date`"
 
@@ -113,7 +119,7 @@ else
 fi
 
 
-### LOG ###
+### Log Pring And Exit ###
 append_log "###### LOG GZIP PROCESS END ###### "
 print_log
 exit 0
